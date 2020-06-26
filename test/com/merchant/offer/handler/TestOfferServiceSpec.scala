@@ -1,48 +1,26 @@
 package com.merchant.offer.handler
 
 
-import java.util.{Calendar, Currency}
-
-import com.merchant.config.MerchantConfigs
 import com.merchant.offer.model._
 import com.merchant.offer.repository.OfferRepository
-import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
 import org.scalacheck.Gen
-import org.scalatest.{Matchers, PropSpec}
+import org.scalatest.{Matchers, PrivateMethodTester, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import play.api.Logger
+import scala.language.postfixOps
 
 /**
- * Generator driven property tests for OfferHandler
+ * Generator driven property tests for OfferService
  *
  * @author kcampbell
  */
-class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with Matchers {
+class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with Matchers with PrivateMethodTester {
   val logger = Logger(this.getClass())
 
-  val minTextLength = MerchantConfigs.getDescriptionConstraints().minLength
-  val maxTextLength = MerchantConfigs.getDescriptionConstraints().maxLength
-  val scaleMax = MerchantConfigs.getDecimalConstraints().scaleMax
+  import com.merchant.testgens._
 
-  val currencyCodes: Array[String] = Currency.getAvailableCurrencies
-    .toArray
-    .map[Currency](_.asInstanceOf[Currency])
-    .map[String](_.getCurrencyCode)
-
-  val currencyCodeGen = Gen.oneOf(currencyCodes)
-  val stringGen = (n: Int) => Gen.listOfN(n, Gen.alphaNumChar).map(_.mkString)
-  val singleNumGen = Gen.chooseNum(minTextLength, maxTextLength)
-  val amountGen = for {
-    amt <- Gen.chooseNum(0, 100000000)
-    amtDecimal = BigDecimal.valueOf(amt).setScale(scaleMax)
-  } yield amtDecimal
-
-  val dateTimeGen = Gen.calendar
-    .map(t => LocalDateTime.fromCalendarFields(Calendar.getInstance()).withMillisOfSecond(0))
-    .map(_.toString)
-
-
+  //Reduced function's access to private - but keep test
   property("doValidate should enforce validation") {
     val genRequest = for {
       num <- singleNumGen
@@ -55,11 +33,14 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
     val repo = new OfferRepository()
     val handler = new OfferService(repo)
 
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
+
     forAll(genRequest) {
-      t => handler.validate(t.offer).errors should equal(List())
+      t => (handler invokePrivate accessValidate(t.offer) errors) should equal(List())
     }
   }
 
+  //Reduced function's access to private - but keep test
   property("doValidate should report amount failures") {
     val failAmountGen = for {
       amt <- Gen.chooseNum(0, 100000000)
@@ -77,11 +58,14 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
     val repo = new OfferRepository()
     val handler = new OfferService(repo)
 
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
+
     forAll(genFailAmountRequest) {
-      t => handler.validate(t.offer).errors.length should equal(1)
+      t => (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
     }
   }
 
+  //Reduced function's access to private - but keep test
   property("doValidate should report description failures") {
 
     val genFailDescriptionRequest = for {
@@ -94,11 +78,14 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
     val repo = new OfferRepository()
     val handler = new OfferService(repo)
 
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
+
     forAll(genFailDescriptionRequest) {
-      t => handler.validate(t.offer).errors.length should equal(1)
+      t => (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
     }
   }
 
+  //Reduced function's access to private - but keep test
   property("doValidate should report date failures") {
     val formatter = DateTimeFormat forPattern "yyyy/MM/dd HH:mm:ss"
     val dateTime = "2020/12/01 13:00:01"
@@ -112,15 +99,16 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
 
     val repo = new OfferRepository()
     val handler = new OfferService(repo)
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
 
     forAll(genFailDateRequest) {
       t => {
-        println(handler.validate(t.offer))
-        handler.validate(t.offer).errors.length should equal(1)
+          (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
       }
     }
   }
 
+  //Reduced function's access to private - but keep test
   property("transform should not create an Offer from an OfferRequest when errors exist ") {
     val genFailDescriptionRequest = for {
       description <- stringGen(maxTextLength + 1).map(Description(_))
@@ -131,13 +119,14 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
 
     val repo = new OfferRepository()
     val handler = new OfferService(repo)
+    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData],String]](Symbol("transform"))
 
     forAll(genFailDescriptionRequest) {
       t => {
-        val res = handler.transform(t)
-        logger.info(s"transform :${res}")
+        val result = (handler invokePrivate accessTransform(t)).data
+        logger.trace(s"transform :${result}")
 
-        val isResultCorrect = res.data match {
+        val isResultCorrect = result match {
           case Some(_) => false
           case None => true
         }
@@ -146,6 +135,7 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
     }
   }
 
+  //Reduced function's access to private - but keep test
   property("transform should create an Offer from an OfferRequest when there are no errors") {
     val genRequest = for {
       num <- singleNumGen
@@ -157,9 +147,10 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
 
     val repo = new OfferRepository()
     val handler = new OfferService(repo)
+    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData],String]](Symbol("transform"))
 
     forAll(genRequest) {
-      t => handler.transform(t).data.isInstanceOf[Option[OfferData]]
+      t => (handler invokePrivate accessTransform(t)).data.isInstanceOf[Option[OfferData]]
     }
   }
 

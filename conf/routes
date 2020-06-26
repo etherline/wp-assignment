@@ -10,4 +10,5 @@ GET     /                           com.merchant.offer.controllers.HomeControlle
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 POST    /api/merchant/offer/createOffer com.merchant.offer.controllers.OfferController.createOffer
+POST    /api/merchant/offer/listOffers com.merchant.offer.controllers.OfferController.listOffers
 

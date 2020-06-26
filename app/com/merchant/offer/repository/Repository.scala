@@ -12,5 +12,5 @@ trait Repository[T] {
 
   def list[P](params:P): Seq[T]
 
-  def expire(id: UUID): T
+  def expire(id: UUID): Option[T]
 }

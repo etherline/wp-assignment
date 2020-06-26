@@ -11,15 +11,17 @@ class OfferService @Inject()(repository: Repository[OfferData]) {
 
   def doCreateOffer(request: OfferRequest) = {
     logger.debug(s"doCreateOffer: request : ${request}")
-    (validate andThen transform andThen persist) (request.offer)
+    (validate _ andThen transform _ andThen persist _) (request.offer)
   }
 
-  val validate = (offer: Offer) => {
+
+  private def validate(offer: Offer) = {
     logger.debug(s"doValidate: request = ${offer}")
+
     val results = List(
       getDescriptionError(offer.description),
       getAmountError(offer.price.amount),
-      getDateError(offer.expiryDateTime.dateTime)
+      getDateError(offer.expiryDateTime.strValue)
     )
 
     val errors = results collect {
@@ -32,21 +34,21 @@ class OfferService @Inject()(repository: Repository[OfferData]) {
     RestOfferDTO(offer, errors)
   }
 
-  val transform = (dto: OfferDTO[Offer, String]) => {
+  private def transform(dto: OfferDTO[Offer, String]) = {
     val reqData = dto.data
-    val offer: Option[OfferData] = dto.errors match {
+    val validatedOffer: Option[OfferData] = dto.errors match {
       case Seq() => Some(
         OfferData(UUID.randomUUID(),
           reqData.description.value,
           reqData.price.amount, reqData.price.currency,
-          OfferDate.toDateTime(reqData.expiryDateTime.dateTime)))
+          OfferDate.toDateTime(reqData.expiryDateTime.strValue)))
       case _ => None
     }
 
-    RestOfferDTO(offer, dto.errors)
+    RestOfferDTO(validatedOffer, dto.errors)
   }
 
-  val persist = (dto: OfferDTO[Option[OfferData], String]) => {
+  private def persist(dto: OfferDTO[Option[OfferData], String]) = {
     dto.data match {
       case None => OfferResponse(None, dto.errors)
       case Some(offer) => {
@@ -57,7 +59,7 @@ class OfferService @Inject()(repository: Repository[OfferData]) {
                 Offer(
                   Description(offer.description),
                   Price(offer.price, offer.currency),
-                  OfferDate(offer.expiry.toString()),//fixme!
+                  OfferDate(offer.expiry.toString()),
                   Some(offer.uid))))
           }
           case false => OfferResponse(None) //TODO:error handling

@@ -7,7 +7,7 @@ import play.api.libs.json.Format
 
 import scala.util.{Failure, Success, Try}
 
-case class OfferDate(val dateTime: String) extends AnyVal
+case class OfferDate(val strValue: String) extends AnyVal
 
 object OfferDate {
   val constraints = MerchantConfigs.getDateConstraints()

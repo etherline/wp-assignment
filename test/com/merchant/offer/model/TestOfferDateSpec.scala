@@ -1,9 +1,5 @@
 package com.merchant.offer.model
 
-import java.util.Calendar
-
-import org.joda.time.LocalDateTime
-import org.scalacheck.Gen
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Logger
@@ -11,14 +7,13 @@ import play.api.Logger
 class TestOfferDateSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers {
   val logger = Logger(this.getClass())
 
+  import com.merchant.testgens._
+
   property("OfferDate.validator should return no errors for valid formatted date") {
-    val dateTimeGen = Gen.calendar
-      .map(t => LocalDateTime.fromCalendarFields(Calendar.getInstance()).withMillisOfSecond(0))
-      .map(_.toString)
 
     forAll(dateTimeGen) {
       dateStr => {
-        val hasError = OfferDate.validator.apply(OfferDate(dateStr).dateTime) match {
+        val hasError = OfferDate.validator.apply(OfferDate(dateStr).strValue) match {
           case Some(_) => true
           case None => false
         }

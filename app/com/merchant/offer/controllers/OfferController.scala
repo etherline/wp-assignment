@@ -18,6 +18,7 @@ class OfferController @Inject() (cc: OfferControllerComponents) extends OfferCon
         val json = request.body.asJson.get
         val offerRequest = json.as[OfferRequest]
         val response = cc.offerService.doCreateOffer(offerRequest)
+        logger.debug(s"createOffer: response = ${response}")
         Future.successful(Ok(Json.toJson(response)))
     }
 
@@ -27,6 +28,8 @@ class OfferController @Inject() (cc: OfferControllerComponents) extends OfferCon
             val json = request.body.asJson.get
             val listRequest = json.as[ListRequest]
         val response = cc.listService.listOffers(listRequest)
+            logger.debug(s"listOffers: response = ${response}")
+        Future.successful(Ok(Json.toJson(response)))
     }
 
     def expireOffer(id:String): Action[AnyContent] = ???
