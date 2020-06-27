@@ -28,7 +28,7 @@ package object model {
     implicit val format: Format[OfferResponse] = Json.format
   }
 
-  case class ExpireRequest(guid: String) extends OfferCommand
+  case class ExpireRequest(uuid: String) extends OfferCommand
 
   object ExpireRequest {
     implicit val format: Format[ExpireRequest] = Json.format

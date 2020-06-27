@@ -5,13 +5,12 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Logger
 
 class TestOfferDateSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers {
-  val logger = Logger(this.getClass())
 
-  import com.merchant.testgens._
+  import com.merchant.offer.fixtures._
 
   property("OfferDate.validator should return no errors for valid formatted date") {
 
-    forAll(dateTimeGen) {
+    forAll(currentDateTimeGen) {
       dateStr => {
         val hasError = OfferDate.validator.apply(OfferDate(dateStr).strValue) match {
           case Some(_) => true

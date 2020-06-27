@@ -15,7 +15,11 @@ libraryDependencies ++= Seq(
 )
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
 libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.14.1" % Test
+libraryDependencies += "org.mockito" %% "mockito-scala" % "1.8.0" % Test
 
+
+
+resolvers += "Mockito" at "https://dl.bintray.com/mockito/maven/"
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.merchant.controllers._"
 

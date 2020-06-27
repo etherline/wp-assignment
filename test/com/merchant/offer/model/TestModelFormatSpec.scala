@@ -16,7 +16,7 @@ class TestModelFormatSpec extends FunSuite with Matchers with Checkers {
 
   object JsonFixture {
 
-    val createOfferRequestString =
+    val createOfferRequestString: String =
       """{
         | "offer":{
         | "description" : "A wonderful offer to buy, hurry don't wait!",
@@ -30,9 +30,9 @@ class TestModelFormatSpec extends FunSuite with Matchers with Checkers {
 
     val createOfferJsonValue: JsValue = Json.parse(createOfferRequestString)
 
-    def isValid[T](result: JsResult[T]) = result match {
-      case x: JsSuccess[T] => true
-      case e: JsError => false
+    def isValid[T](result: JsResult[T]): Boolean = result match {
+      case _: JsSuccess[T] => true
+      case _: JsError => false
     }
   }
 

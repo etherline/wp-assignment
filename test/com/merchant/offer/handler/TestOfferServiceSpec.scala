@@ -3,64 +3,62 @@ package com.merchant.offer.handler
 
 import com.merchant.offer.model._
 import com.merchant.offer.repository.OfferRepository
-import org.joda.time.format.DateTimeFormat
-import org.scalacheck.Gen
 import org.scalatest.{Matchers, PrivateMethodTester, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import play.api.Logger
+import shapeless.ops.coproduct.Inject
+
 import scala.language.postfixOps
 
-/**
- * Generator driven property tests for OfferService
- *
- * @author kcampbell
- */
 class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with Matchers with PrivateMethodTester {
-  val logger = Logger(this.getClass())
+  private val logger = Logger(this.getClass)
 
-  import com.merchant.testgens._
+  import com.merchant.offer.fixtures._
+
+  property("doCreateOffer should report errors when validation fails") {
+
+    val repo = new OfferRepository()
+    val handler = new OfferServiceImpl(repo)
+
+    forAll(failAmountRequestGen) {
+      t => assert(handler.doCreateOffer(t).errors.nonEmpty)
+    }
+  }
+
+  property("doCreateOffer should return OfferResponse when validation succeeds") {
+
+    val repo = new OfferRepository()
+    val handler = new OfferServiceImpl(repo)
+
+    forAll(offerRequestGen) {
+      t => {
+        val offerResponse = handler.doCreateOffer(t)
+        assert(offerResponse.errors.isEmpty)
+        assert(offerResponse.offer.isDefined)
+      }
+    }
+  }
 
   //Reduced function's access to private - but keep test
   property("doValidate should enforce validation") {
-    val genRequest = for {
-      num <- singleNumGen
-      description <- stringGen(num).map(Description(_))
-      currency <- currencyCodeGen
-      dateTime <- dateTimeGen.map(OfferDate(_))
-      amount <- amountGen.map(Amount(_))
-    } yield OfferRequest(Offer(description, Price(amount, currency), dateTime))
-
     val repo = new OfferRepository()
-    val handler = new OfferService(repo)
+    val handler = new OfferServiceImpl(repo)
 
-    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer, String]](Symbol("doValidate"))
 
-    forAll(genRequest) {
+    forAll(offerRequestGen) {
       t => (handler invokePrivate accessValidate(t.offer) errors) should equal(List())
     }
   }
 
   //Reduced function's access to private - but keep test
   property("doValidate should report amount failures") {
-    val failAmountGen = for {
-      amt <- Gen.chooseNum(0, 100000000)
-      amtDecimal = BigDecimal.valueOf(amt).setScale(4)
-    } yield amtDecimal
-
-    val genFailAmountRequest = for {
-      num <- singleNumGen
-      description <- stringGen(num).map(Description(_))
-      currency <- currencyCodeGen
-      dateTime <- dateTimeGen.map(OfferDate(_))
-      amount <- failAmountGen.map(Amount(_))
-    } yield OfferRequest(Offer(description, Price(amount, currency), dateTime))
 
     val repo = new OfferRepository()
-    val handler = new OfferService(repo)
+    val handler = new OfferServiceImpl(repo)
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer, String]](Symbol("doValidate"))
 
-    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
-
-    forAll(genFailAmountRequest) {
+    forAll(failAmountRequestGen) {
       t => (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
     }
   }
@@ -68,26 +66,17 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
   //Reduced function's access to private - but keep test
   property("doValidate should report description failures") {
 
-    val genFailDescriptionRequest = for {
-      description <- stringGen(maxTextLength + 1).map(Description(_))
-      currency <- currencyCodeGen
-      dateTime <- dateTimeGen.map(OfferDate(_))
-      amount <- amountGen.map(Amount(_))
-    } yield OfferRequest(Offer(description, Price(amount, currency), dateTime))
-
     val repo = new OfferRepository()
-    val handler = new OfferService(repo)
+    val handler = new OfferServiceImpl(repo)
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer, String]](Symbol("doValidate"))
 
-    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
-
-    forAll(genFailDescriptionRequest) {
-      t => (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
+    forAll(failDescriptionOfferGen) {
+      t => (handler invokePrivate accessValidate(t) errors).length should equal(1)
     }
   }
 
   //Reduced function's access to private - but keep test
   property("doValidate should report date failures") {
-    val formatter = DateTimeFormat forPattern "yyyy/MM/dd HH:mm:ss"
     val dateTime = "2020/12/01 13:00:01"
 
     val genFailDateRequest = for {
@@ -98,33 +87,26 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
 
 
     val repo = new OfferRepository()
-    val handler = new OfferService(repo)
-    val accessValidate = PrivateMethod[RestOfferDTO[Offer,String]](Symbol("validate"))
+    val handler = new OfferServiceImpl(repo)
+    val accessValidate = PrivateMethod[RestOfferDTO[Offer, String]](Symbol("doValidate"))
 
     forAll(genFailDateRequest) {
       t => {
-          (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
+        (handler invokePrivate accessValidate(t.offer) errors).length should equal(1)
       }
     }
   }
 
   //Reduced function's access to private - but keep test
   property("transform should not create an Offer from an OfferRequest when errors exist ") {
-    val genFailDescriptionRequest = for {
-      description <- stringGen(maxTextLength + 1).map(Description(_))
-      currency <- currencyCodeGen
-      dateTime <- dateTimeGen.map(OfferDate(_))
-      amount <- amountGen.map(Amount(_))
-    } yield RestOfferDTO(Offer(description, Price(amount, currency), dateTime),Seq("this is an error message"))
-
     val repo = new OfferRepository()
-    val handler = new OfferService(repo)
-    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData],String]](Symbol("transform"))
+    val handler = new OfferServiceImpl(repo)
+    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData], String]](Symbol("doTransformRequest"))
 
-    forAll(genFailDescriptionRequest) {
+    forAll(failDTOGen) {
       t => {
         val result = (handler invokePrivate accessTransform(t)).data
-        logger.trace(s"transform :${result}")
+        logger.trace(s"transform :$result")
 
         val isResultCorrect = result match {
           case Some(_) => false
@@ -137,36 +119,13 @@ class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks 
 
   //Reduced function's access to private - but keep test
   property("transform should create an Offer from an OfferRequest when there are no errors") {
-    val genRequest = for {
-      num <- singleNumGen
-      description <- stringGen(num).map(Description(_))
-      currency <- currencyCodeGen
-      dateTime <- dateTimeGen.map(OfferDate(_))
-      amount <- amountGen.map(Amount(_))
-    } yield RestOfferDTO(Offer(description, Price(amount, currency), dateTime),Seq[String]())
 
     val repo = new OfferRepository()
-    val handler = new OfferService(repo)
-    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData],String]](Symbol("transform"))
+    val handler = new OfferServiceImpl(repo)
+    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData], String]](Symbol("doTransformRequest"))
 
-    forAll(genRequest) {
+    forAll(succeedDTOGen) {
       t => (handler invokePrivate accessTransform(t)).data.isInstanceOf[Option[OfferData]]
-    }
-  }
-
-  property("doCreateOffer should do something") {
-    val genFailDescriptionRequest = for {
-      description <- stringGen(maxTextLength + 1).map(Description(_))
-      currency <- currencyCodeGen
-      dateTime <- dateTimeGen.map(OfferDate(_))
-      amount <- amountGen.map(Amount(_))
-    } yield OfferRequest(Offer(description, Price(amount, currency), dateTime))
-
-    val repo = new OfferRepository()
-    val handler = new OfferService(repo)
-
-    forAll(genFailDescriptionRequest) {
-      t => handler.doCreateOffer(t)
     }
   }
 

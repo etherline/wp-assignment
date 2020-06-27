@@ -9,5 +9,5 @@ object SingleFieldFormat {
 
   import play.api.libs.functional.syntax._
 
-  def format[A, B](f: A => B, g: B => A)(implicit fa: Format[A]) = fa.inmap(f, g)
+  def format[A, B](f: A => B, g: B => A)(implicit fa: Format[A]): Format[B] = fa.inmap(f, g)
 }

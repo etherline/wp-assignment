@@ -9,6 +9,8 @@ GET     /                           com.merchant.offer.controllers.HomeControlle
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
+# Merchant Offer routes
 POST    /api/merchant/offer/createOffer com.merchant.offer.controllers.OfferController.createOffer
 POST    /api/merchant/offer/listOffers com.merchant.offer.controllers.OfferController.listOffers
+POST    /api/merchant/offer/expireOffer  com.merchant.offer.controllers.OfferController.expireOffer
 

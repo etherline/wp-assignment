@@ -10,7 +10,7 @@ import scala.collection.mutable
 
 class TestOfferRepositorySpec extends PropSpec with ScalaCheckPropertyChecks with Matchers with PrivateMethodTester {
 
-  import com.merchant.testgens._
+  import com.merchant.offer.fixtures._
 
   property("Verify OfferRepository save succeeds") {
     val repo = new OfferRepository()
@@ -21,7 +21,7 @@ class TestOfferRepositorySpec extends PropSpec with ScalaCheckPropertyChecks wit
       offerData =>
         val result = repo.save(offerData)
         assertResult(true)(result)
-        assertResult(offerData)(fromPrivateDataStore get offerData.uid getOrElse None)
+        assertResult(offerData)(fromPrivateDataStore.getOrElse(offerData.uid, None))
     }
   }
 
@@ -33,7 +33,7 @@ class TestOfferRepositorySpec extends PropSpec with ScalaCheckPropertyChecks wit
         val repo = new OfferRepository()
         val accessPrivateDataStore = PrivateMethod[mutable.HashMap[UUID, OfferData]](Symbol("offerMap"))
         val fromPrivateDataStore = repo invokePrivate accessPrivateDataStore()
-        offerList.foreach(repo.save(_))
+        offerList.foreach(repo.save)
         val extra = fromPrivateDataStore filter (element => offerList.contains(element))
         assert(fromPrivateDataStore.size == offerList.size)
         assert(extra.isEmpty)
@@ -64,14 +64,14 @@ class TestOfferRepositorySpec extends PropSpec with ScalaCheckPropertyChecks wit
         val repo = new OfferRepository()
         val accessPrivateDataStore = PrivateMethod[mutable.HashMap[UUID, OfferData]](Symbol("offerMap"))
         val fromPrivateDataStore = repo invokePrivate accessPrivateDataStore()
-        offerList.foreach(repo.save(_))
+        offerList.foreach(repo.save)
         assertResult(offerList.size)(fromPrivateDataStore.size)
 
         offerList.map(offerData => offerData.uid).foreach(
           id => {
             val result = repo.expire(id)
             val isCorrect = result match {
-              case(Some(offer)) => offer.uid == id && isExpiryFulfilled(offer)
+              case Some(offer) => offer.uid == id && isExpiryFulfilled(offer)
               case None => false
             }
             assert(isCorrect)

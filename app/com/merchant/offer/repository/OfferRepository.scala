@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.google.inject.Singleton
 import com.merchant.offer.model.OfferData
+import org.joda.time.DateTime
 import play.api.Logger
 
 import scala.collection.mutable
@@ -14,39 +15,55 @@ import scala.util.Try
  */
 @Singleton
 class OfferRepository extends Repository[OfferData] {
-  val logger = Logger(this.getClass())
+  private val logger = Logger(this.getClass)
 
   private val offerMap = mutable.HashMap[UUID, OfferData]()
 
-  override def save(offer: OfferData) = {
-    logger.debug(s"save:${offer}")
+  override def save(offer: OfferData): Boolean = {
+    logger.debug(s"save:$offer")
     Try {
       offerMap.put(offer.uid, offer)
       true
     }.getOrElse(false)
   }
 
-  override def list[String](params:String): Seq[OfferData] = {
+  //noinspection EmptyParenMethodAccessedAsParameterless
+  override def list[String](params: String): Seq[OfferData] = {
 
-
-    def getAll() = {
-      offerMap.map(v => v._2).toSeq
+    def getAll = {
+      offerMap.values.toSeq
     }
 
-    def getCurrent() = {
-      offerMap.filter(x => x._2.expiry.isAfterNow || x._2.expiry.isEqualNow).map(v => v._2).toSeq
+    def getCurrent = {
+      offerMap.values.filter(x => x.expiry.isAfterNow || x.expiry.isEqualNow).toSeq
     }
 
-    def getExpired() = {
-      offerMap.filter(x => x._2.expiry.isBeforeNow).map(v => v._2).toSeq
+    def getExpired = {
+      offerMap.values.filter(_.expiry.isBeforeNow).toSeq
     }
 
     params match {
       case "all" => getAll
       case "current" => getCurrent
       case "expired" => getExpired
+      case _ => Seq()
     }
   }
 
-  override def expire(id: UUID): Option[OfferData] = ???
+  override def expire(id: UUID): Option[OfferData] = {
+    val saved: Option[OfferData] = offerMap.get(id)
+    val updated = update(saved)
+    updated match {
+      case None => None
+      case Some(v) => offerMap.put(id, v);
+    }
+    updated
+  }
+
+  private def update(offer:Option[OfferData]) = {
+    offer match {
+      case None => None
+      case Some(v) => Some(v.copy(expiry = DateTime.now()));
+    }
+  }
 }
