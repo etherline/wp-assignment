@@ -114,7 +114,7 @@ refinement without modifying the API.
 '`expired`'. The system will return the set of offers which fulfil the chosen criterion. Where an undefined
 string is passed the system will return an error response describing the fault.
 
-####expireOffer [GET             /merchant/api/offer/expireOffer/:id]
+####expireOffer [POST             /merchant/api/offer/expireOffer]
 
 8. An expireOffer request should override the expiry date of an Offer. The request must provide the unique identity of the 
 Offer.

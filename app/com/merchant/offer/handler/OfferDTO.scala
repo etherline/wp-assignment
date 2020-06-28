@@ -1,4 +1,4 @@
-package com.merchant.offer.model
+package com.merchant.offer.handler
 
 trait OfferDTO[T,U] {
   val data:T

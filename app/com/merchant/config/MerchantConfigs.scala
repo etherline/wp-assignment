@@ -7,7 +7,8 @@ object MerchantConfigs extends Configs {
 
   override val getConfig: ConfigObjectSource = ConfigSource.resources("application.conf")
 
-  lazy val constraints: MerchantConfigs.OfferConstraints = getConfig.at("constraints").load[OfferConstraints] match {
+  lazy val constraints: MerchantConfigs.OfferConstraints =
+    getConfig.at("constraints").load[OfferConstraints] match {
     case Right(x) => x
     case Left(x) => throw new Exception(x.toString)
   }

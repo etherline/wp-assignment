@@ -1,0 +1,10 @@
+{
+  "offer": {
+    "description": "An impossibly fantastic offer that you can't miss",
+    "price": {
+      "amount": 67.43,
+      "currency": "GBP"
+    },
+    "expiryDateTime": "2020-07-09T12:00:11.000"
+  }
+}

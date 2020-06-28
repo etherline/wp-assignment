@@ -12,7 +12,7 @@ import play.api.libs.json._
 import scala.language.postfixOps
 
 @RunWith(classOf[JUnitRunner])
-class TestModelFormatSpec extends FunSuite with Matchers with Checkers {
+class ModelFormatSpec extends FunSuite with Matchers with Checkers {
 
   object JsonFixture {
 

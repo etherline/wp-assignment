@@ -11,7 +11,7 @@ import play.api.Logger
 
 import scala.collection.mutable
 
-class TestListServiceSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers with PrivateMethodTester {
+class ListServiceSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers with PrivateMethodTester {
 
   import com.merchant.offer.fixtures._
 

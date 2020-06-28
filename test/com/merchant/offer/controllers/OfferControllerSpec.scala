@@ -18,7 +18,7 @@ import play.api.test.{FakeRequest, Helpers, Injecting}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TestOfferControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with Injecting{
+class OfferControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with Injecting{
   private val logger = Logger(getClass)
 
   object JsonFixture {
@@ -61,15 +61,15 @@ class TestOfferControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAp
 
   override def fakeApplication() = GuiceApplicationBuilder().
         overrides(
-          bind[OfferService] toInstance(MockOfferService),
-          bind[ExpireService] toInstance(MockExpireService),
-          bind[ListService] toInstance(MockListService)
+          bind[OfferService] toInstance MockOfferService,
+          bind[ExpireService] toInstance MockExpireService,
+          bind[ListService] toInstance MockListService
         )
         .build()
 
 
   "OfferController createOffer should delegate to OfferService" in {
-    implicit val ec = inject[ExecutionContext]
+    implicit val ec: ExecutionContext = inject[ExecutionContext]
 
     val json: JsValue = JsonFixture.createOfferJsonValue
     val request = {
@@ -87,7 +87,7 @@ class TestOfferControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAp
   }
 
   "OfferController listOffers should delegate to ListService" in {
-    implicit val ec = inject[ExecutionContext]
+    implicit val ec: ExecutionContext = inject[ExecutionContext]
 
     val json: JsValue = JsonFixture.listRequestJsonValue
     val request = {
@@ -105,7 +105,7 @@ class TestOfferControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAp
   }
 
   "OfferController expireOffer should delegate to ExpireService" in {
-    implicit val ec = inject[ExecutionContext]
+    implicit val ec: ExecutionContext = inject[ExecutionContext]
 
     val json: JsValue = JsonFixture.expireRequestJsonValue
     val request = {
@@ -141,7 +141,7 @@ class TestOfferControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAp
           Offer(Description("myOffer"),
             Price(Amount(50.0), "GBP"),
           OfferDate("2020-01-01T00:01:02.000+1:00"),
-          Option(UUID.randomUUID()))),true)
+          Option(UUID.randomUUID()))),isConfirmed = true)
 
     }
   }

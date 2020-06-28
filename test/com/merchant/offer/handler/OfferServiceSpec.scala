@@ -10,7 +10,7 @@ import shapeless.ops.coproduct.Inject
 
 import scala.language.postfixOps
 
-class TestOfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with Matchers with PrivateMethodTester {
+class OfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with Matchers with PrivateMethodTester {
   private val logger = Logger(this.getClass)
 
   import com.merchant.offer.fixtures._

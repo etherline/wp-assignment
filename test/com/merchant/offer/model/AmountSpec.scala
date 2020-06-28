@@ -5,7 +5,7 @@ import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Logger
 
-class TestAmountSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers {
+class AmountSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers {
   private val logger = Logger(this.getClass)
 
   import com.merchant.offer.fixtures._

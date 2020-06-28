@@ -3,7 +3,8 @@ package com.merchant.offer
 import java.util.{Calendar, Currency, UUID}
 
 import com.merchant.config.MerchantConfigs
-import com.merchant.offer.model.{Amount, Description, Offer, OfferData, OfferDate, OfferRequest, Price, RestOfferDTO}
+import com.merchant.offer.handler.RestOfferDTO
+import com.merchant.offer.model.{Amount, Description, Offer, OfferData, OfferDate, OfferRequest, Price}
 import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
 import org.scalacheck.Gen
@@ -11,6 +12,7 @@ import org.scalacheck.Gen
 import scala.annotation.tailrec
 
 package object fixtures {
+
   val minTextLength: Int = MerchantConfigs.getDescriptionConstraints.minLength
   private val maxTextLength = MerchantConfigs.getDescriptionConstraints.maxLength
   private val maxScale = MerchantConfigs.getDecimalConstraints.scaleMax
@@ -20,10 +22,10 @@ package object fixtures {
   private val dateTimeFormatter = DateTimeFormat forPattern dateTimePattern
   private val timeZoneFormatter = DateTimeFormat forPattern timeZonePattern
 
-  val currencyCodes: Array[String] = Currency.getAvailableCurrencies
+  val currencyCodes: Seq[String] = Currency.getAvailableCurrencies
     .toArray
     .map[Currency](_.asInstanceOf[Currency])
-    .map[String](_.getCurrencyCode)
+    .map[String](_.getCurrencyCode).toIndexedSeq
 
   val currencyCodeGen: Gen[String] = Gen.oneOf(currencyCodes)
 

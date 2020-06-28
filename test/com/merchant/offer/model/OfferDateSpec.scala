@@ -4,7 +4,7 @@ import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Logger
 
-class TestOfferDateSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers {
+class OfferDateSpec extends PropSpec with ScalaCheckPropertyChecks with Matchers {
 
   import com.merchant.offer.fixtures._
 

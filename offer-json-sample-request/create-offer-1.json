@@ -1,0 +1,10 @@
+{
+  "offer": {
+    "description": "Something really exciting with a long description",
+    "price": {
+      "amount": 153.99,
+      "currency": "GBP"
+    },
+    "expiryDateTime": "2020-07-30T12:00:01.000"
+  }
+}

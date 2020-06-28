@@ -8,7 +8,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.collection.mutable
 
-class TestOfferRepositorySpec extends PropSpec with ScalaCheckPropertyChecks with Matchers with PrivateMethodTester {
+class OfferRepositorySpec extends PropSpec with ScalaCheckPropertyChecks with Matchers with PrivateMethodTester {
 
   import com.merchant.offer.fixtures._
 
