@@ -101,7 +101,7 @@ class OfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with
   property("transform should not create an Offer from an OfferRequest when errors exist ") {
     val repo = new OfferRepository()
     val handler = new OfferServiceImpl(repo)
-    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData], String]](Symbol("doTransformRequest"))
+    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData], String]](Symbol("doGatedTransform"))
 
     forAll(failDTOGen) {
       t => {
@@ -122,7 +122,7 @@ class OfferServiceSpec extends PropSpec with ScalaCheckDrivenPropertyChecks with
 
     val repo = new OfferRepository()
     val handler = new OfferServiceImpl(repo)
-    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData], String]](Symbol("doTransformRequest"))
+    val accessTransform = PrivateMethod[RestOfferDTO[Option[OfferData], String]](Symbol("doGatedTransform"))
 
     forAll(succeedDTOGen) {
       t => (handler invokePrivate accessTransform(t)).data.isInstanceOf[Option[OfferData]]

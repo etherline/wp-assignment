@@ -32,7 +32,7 @@ object OfferDate {
 
   def fromDateTimeZone(dateTime: DateTime):String = {
     val dt = toDateTimeZone(dateTime.toString)
-    val formatter = DateTimeFormat forPattern constraints.pattern
+    val formatter = DateTimeFormat forPattern constraints.timeZonePattern
     val parsedDt = formatter parseDateTime dt.toString
     parsedDt.toString
   }

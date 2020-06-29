@@ -51,7 +51,7 @@ class OfferRepository extends Repository[OfferData] {
   }
 
   override def expire(id: UUID): Option[OfferData] = {
-    val saved: Option[OfferData] = offerMap.get(id)
+    val saved = offerMap.get(id)
     val updated = updateExpiry(saved)
     updated match {
       case None => None
@@ -60,10 +60,7 @@ class OfferRepository extends Repository[OfferData] {
     updated
   }
 
-  private def updateExpiry(offer:Option[OfferData]) = {
-    offer match {
-      case None => None
-      case Some(v) => Some(v.copy(expiry = DateTime.now()));
-    }
-  }
+  private def updateExpiry(offer:Option[OfferData]):Option[OfferData] =
+    offer.flatMap(v => Some(v.copy(expiry = DateTime.now())))
+
 }

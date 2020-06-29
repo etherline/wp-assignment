@@ -17,8 +17,8 @@ class OfferServiceImpl @Inject()(repository: Repository[OfferData]) extends Offe
 
 
   private val validate = doValidate _
-  private val transform = doTransformRequest _
-  private val persist = doPersist _
+  private val transform = doGatedTransform _
+  private val persist = doConditionalPersist _
 
   private def validator[R](value: R)(f: R => Option[String]) = f(value)
 
@@ -38,17 +38,13 @@ class OfferServiceImpl @Inject()(repository: Repository[OfferData]) extends Offe
       getDateError(offer.expiryDateTime.strValue)
     )
 
-    val errors = results collect {
-      x: Option[String] =>
-        x match {
-          case Some(message) => message
-        }
-    }
+    val errors = results.flatMap(x => x.collect { case s: String => s })
+
     logger.debug(s"doValidate: errors = $errors ")
     RestOfferDTO(offer, errors)
   }
 
-  private def doTransformRequest(dto: OfferDTO[Offer, String]) = {
+  private def doGatedTransform(dto: OfferDTO[Offer, String]) = {
     val offer = dto.data
     val validatedOffer: Option[OfferData] = dto.errors match {
       case Seq() => Some(
@@ -62,11 +58,11 @@ class OfferServiceImpl @Inject()(repository: Repository[OfferData]) extends Offe
     RestOfferDTO(validatedOffer, dto.errors)
   }
 
-  private def doPersist(dto: OfferDTO[Option[OfferData], String]) = {
+  private def doConditionalPersist(dto: OfferDTO[Option[OfferData], String]) = {
+
     dto.data match {
       case None => OfferResponse(None, dto.errors)
       case Some(offer) =>
-
         if (repository.save(offer)) {
           OfferResponse(
             Some(
